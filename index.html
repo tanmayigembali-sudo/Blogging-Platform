@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Inkwell — Modern Blogging Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Instrument+Serif&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+/* ============ Design tokens ============ */
+:root{
+  --bg:#f7f9fc; --surface:#ffffff; --surface-2:#f1f5fb;
+  --text:#0f172a; --muted:#64748b; --border:#e2e8f0;
+  --primary:#2563eb; --primary-2:#3b82f6; --primary-glow:#60a5fa;
+  --danger:#ef4444; --success:#10b981; --warn:#f59e0b;
+  --grad: linear-gradient(135deg,#2563eb,#60a5fa);
+  --grad-soft: linear-gradient(135deg,#dbeafe,#eff6ff);
+  --shadow-sm: 0 1px 2px rgba(15,23,42,.06);
+  --shadow: 0 10px 30px -12px rgba(37,99,235,.25);
+  --shadow-lg: 0 20px 60px -20px rgba(15,23,42,.25);
+  --radius: 14px;
+  --glass: rgba(255,255,255,.65);
+  --glass-border: rgba(255,255,255,.5);
+}
+html[data-theme="dark"]{
+  --bg:#0b1220; --surface:#0f172a; --surface-2:#111a2e;
+  --text:#e2e8f0; --muted:#94a3b8; --border:#1e293b;
+  --primary:#60a5fa; --primary-2:#3b82f6; --primary-glow:#93c5fd;
+  --grad: linear-gradient(135deg,#3b82f6,#93c5fd);
+  --grad-soft: linear-gradient(135deg,#1e293b,#0f172a);
+  --glass: rgba(15,23,42,.55);
+  --glass-border: rgba(255,255,255,.08);
+  --shadow: 0 10px 30px -12px rgba(0,0,0,.6);
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; font-family:'Inter',system-ui,-apple-system,sans-serif;
+  background:var(--bg); color:var(--text);
+  -webkit-font-smoothing:antialiased;
+  transition: background .3s, color .3s;
+}
+h1,h2,h3,.serif{font-family:'Instrument Serif',Georgia,serif; font-weight:400; letter-spacing:-.01em}
+a{color:inherit; text-decoration:none}
+img{max-width:100%; display:block}
+button{font-family:inherit; cursor:pointer; border:none; background:none; color:inherit}
+input,textarea,select{font-family:inherit}
+
+.container{max-width:1200px; margin:0 auto; padding:0 24px}
+
+/* ============ Navbar ============ */
+.navbar{
+  position:sticky; top:0; z-index:50;
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  background: var(--glass);
+  border-bottom:1px solid var(--border);
+}
+.nav-inner{display:flex; align-items:center; justify-content:space-between; height:68px; gap:20px}
+.brand{display:flex; align-items:center; gap:10px; font-size:22px}
+.brand-mark{width:34px;height:34px;border-radius:10px;background:var(--grad); display:grid;place-items:center;color:#fff; box-shadow:var(--shadow)}
+.brand-name{font-family:'Instrument Serif',serif; font-size:26px}
+.nav-links{display:flex; align-items:center; gap:8px}
+.nav-link{padding:8px 14px; border-radius:10px; color:var(--muted); font-weight:500; font-size:14px; transition:.2s}
+.nav-link:hover, .nav-link.active{color:var(--text); background:var(--surface-2)}
+.search-wrap{position:relative; flex:1; max-width:380px}
+.search-wrap input{
+  width:100%; padding:10px 14px 10px 38px; border-radius:12px;
+  border:1px solid var(--border); background:var(--surface); color:var(--text); outline:none;
+  transition:.2s;
+}
+.search-wrap input:focus{border-color:var(--primary); box-shadow:0 0 0 4px color-mix(in oklab,var(--primary) 15%, transparent)}
+.search-wrap i{position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--muted)}
+.nav-actions{display:flex; align-items:center; gap:8px}
+.icon-btn{
+  width:40px; height:40px; border-radius:10px; display:grid; place-items:center;
+  color:var(--muted); transition:.2s; background:transparent;
+}
+.icon-btn:hover{background:var(--surface-2); color:var(--text)}
+.btn{
+  padding:10px 18px; border-radius:10px; font-weight:600; font-size:14px;
+  display:inline-flex; align-items:center; gap:8px; transition:.2s; white-space:nowrap;
+}
+.btn-primary{background:var(--grad); color:#fff; box-shadow:var(--shadow)}
+.btn-primary:hover{transform:translateY(-1px); box-shadow:var(--shadow-lg)}
+.btn-ghost{background:var(--surface-2); color:var(--text)}
+.btn-ghost:hover{background:var(--border)}
+.btn-danger{background:transparent; color:var(--danger); border:1px solid var(--danger)}
+.btn-danger:hover{background:var(--danger); color:#fff}
+.avatar{width:36px;height:36px;border-radius:50%; background:var(--grad); color:#fff; display:grid;place-items:center; font-weight:700; font-size:14px; cursor:pointer; border:2px solid var(--surface)}
+.menu-toggle{display:none}
+
+/* ============ Hero ============ */
+.hero{
+  position:relative; padding:80px 0 60px; overflow:hidden;
+}
+.hero::before{
+  content:""; position:absolute; inset:-100px; z-index:0;
+  background: radial-gradient(600px 400px at 20% 20%, color-mix(in oklab,var(--primary) 25%, transparent), transparent 60%),
+              radial-gradient(500px 300px at 80% 30%, color-mix(in oklab,var(--primary-glow) 20%, transparent), transparent 60%);
+  pointer-events:none;
+}
+.hero-inner{position:relative; z-index:1; text-align:center; max-width:780px; margin:0 auto}
+.hero h1{font-size:clamp(40px,6vw,76px); line-height:1.05; margin:14px 0}
+.hero h1 .em{background:var(--grad); -webkit-background-clip:text; background-clip:text; color:transparent}
+.hero p{color:var(--muted); font-size:18px; max-width:600px; margin:0 auto 28px}
+.hero-cta{display:flex; gap:12px; justify-content:center; flex-wrap:wrap}
+.kicker{display:inline-flex; align-items:center; gap:8px; padding:6px 14px; border-radius:999px; background:var(--surface); border:1px solid var(--border); color:var(--muted); font-size:13px; font-weight:500}
+
+/* ============ Sections ============ */
+section.block{padding:50px 0}
+.section-head{display:flex; align-items:end; justify-content:space-between; margin-bottom:24px; gap:16px; flex-wrap:wrap}
+.section-head h2{font-size:36px; margin:0}
+.section-head p{color:var(--muted); margin:4px 0 0}
+
+/* Category chips */
+.chips{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:24px}
+.chip{
+  padding:8px 14px; border-radius:999px; background:var(--surface); border:1px solid var(--border);
+  font-size:13px; font-weight:500; color:var(--muted); cursor:pointer; transition:.2s;
+}
+.chip:hover{color:var(--text)}
+.chip.active{background:var(--grad); color:#fff; border-color:transparent; box-shadow:var(--shadow)}
+
+/* ============ Blog cards ============ */
+.grid{display:grid; grid-template-columns:repeat(3,1fr); gap:24px}
+.grid-2{display:grid; grid-template-columns:2fr 1fr; gap:24px}
+@media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)} .grid-2{grid-template-columns:1fr}}
+@media(max-width:600px){.grid{grid-template-columns:1fr}}
+
+.card{
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+  overflow:hidden; transition: transform .3s, box-shadow .3s, border-color .3s;
+  display:flex; flex-direction:column;
+}
+.card:hover{transform:translateY(-4px); box-shadow:var(--shadow-lg); border-color:color-mix(in oklab,var(--primary) 30%, var(--border))}
+.card .thumb{aspect-ratio: 16/10; background:var(--surface-2); overflow:hidden; position:relative}
+.card .thumb img{width:100%; height:100%; object-fit:cover; transition:transform .5s}
+.card:hover .thumb img{transform:scale(1.05)}
+.card .thumb .cat{
+  position:absolute; top:12px; left:12px; padding:4px 10px; border-radius:999px;
+  background:var(--glass); backdrop-filter:blur(8px); border:1px solid var(--glass-border);
+  font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.05em;
+}
+.card-body{padding:20px; display:flex; flex-direction:column; flex:1; gap:10px}
+.card-title{font-family:'Instrument Serif',serif; font-size:24px; line-height:1.2; margin:0; color:var(--text)}
+.card-excerpt{color:var(--muted); font-size:14px; line-height:1.6; flex:1}
+.card-meta{display:flex; align-items:center; gap:10px; color:var(--muted); font-size:12px; margin-top:auto; padding-top:8px}
+.card-meta .av{width:26px;height:26px;border-radius:50%;background:var(--grad);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:700}
+.empty{
+  text-align:center; padding:60px 20px; color:var(--muted);
+  background:var(--surface); border:1px dashed var(--border); border-radius:var(--radius);
+}
+.empty i{font-size:48px; margin-bottom:12px; opacity:.4}
+
+/* Featured large card */
+.featured{
+  display:grid; grid-template-columns:1.2fr 1fr; gap:0; border-radius:var(--radius);
+  overflow:hidden; background:var(--surface); border:1px solid var(--border); margin-bottom:30px;
+}
+.featured .thumb{aspect-ratio:auto; min-height:340px}
+.featured .card-body{padding:36px; justify-content:center}
+.featured .card-title{font-size:40px}
+@media(max-width:800px){.featured{grid-template-columns:1fr}}
+
+/* ============ Footer ============ */
+footer{
+  border-top:1px solid var(--border); margin-top:40px; padding:40px 0;
+  background:var(--surface); color:var(--muted); font-size:14px;
+}
+.footer-inner{display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap}
+.footer-links{display:flex; gap:18px}
+.footer-links a:hover{color:var(--text)}
+
+/* ============ Modals ============ */
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(0,0,0,.5); backdrop-filter:blur(6px);
+  display:none; align-items:center; justify-content:center; z-index:100; padding:20px;
+  animation: fadeIn .2s ease;
+}
+.modal-overlay.open{display:flex}
+.modal{
+  background:var(--surface); border:1px solid var(--border); border-radius:18px;
+  width:100%; max-width:480px; max-height:90vh; overflow:auto;
+  box-shadow:var(--shadow-lg); animation:slideUp .3s ease;
+}
+.modal.lg{max-width:880px}
+.modal-head{padding:24px 28px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center}
+.modal-head h3{margin:0; font-size:26px}
+.modal-body{padding:24px 28px}
+.field{margin-bottom:14px}
+.field label{display:block; font-size:13px; font-weight:600; margin-bottom:6px; color:var(--muted)}
+.field input, .field textarea, .field select{
+  width:100%; padding:11px 14px; border-radius:10px; border:1px solid var(--border);
+  background:var(--bg); color:var(--text); font-size:14px; outline:none; transition:.2s;
+}
+.field input:focus, .field textarea:focus, .field select:focus{
+  border-color:var(--primary); box-shadow:0 0 0 4px color-mix(in oklab,var(--primary) 15%, transparent)
+}
+.field textarea{min-height:120px; resize:vertical}
+.field .err{color:var(--danger); font-size:12px; margin-top:6px; display:none}
+.field.error .err{display:block}
+.field.error input, .field.error textarea, .field.error select{border-color:var(--danger)}
+.form-foot{display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:18px}
+.switch-link{font-size:13px; color:var(--muted)}
+.switch-link a{color:var(--primary); font-weight:600; cursor:pointer}
+
+/* ============ Editor (rich) ============ */
+.editor-toolbar{
+  display:flex; gap:4px; flex-wrap:wrap; padding:8px;
+  background:var(--surface-2); border:1px solid var(--border); border-radius:10px 10px 0 0;
+}
+.editor-toolbar button{
+  width:34px; height:34px; border-radius:7px; color:var(--muted);
+  display:grid; place-items:center; transition:.15s;
+}
+.editor-toolbar button:hover{background:var(--surface); color:var(--text)}
+.editor-toolbar .sep{width:1px; height:24px; background:var(--border); margin:0 4px; align-self:center}
+.editor-area{
+  min-height:300px; max-height:60vh; overflow:auto; padding:16px;
+  border:1px solid var(--border); border-top:none; border-radius:0 0 10px 10px;
+  background:var(--bg); outline:none; line-height:1.7;
+}
+.editor-area:empty:before{content:attr(data-placeholder); color:var(--muted)}
+.editor-area h2{font-size:28px; margin:16px 0 8px}
+.editor-area h3{font-size:22px; margin:14px 0 6px}
+.editor-area blockquote{border-left:4px solid var(--primary); padding-left:14px; color:var(--muted); margin:12px 0}
+.editor-area ul, .editor-area ol{padding-left:24px}
+.editor-area a{color:var(--primary); text-decoration:underline}
+.editor-area img{border-radius:10px; margin:10px 0}
+
+/* ============ Toast ============ */
+#toast-wrap{position:fixed; top:20px; right:20px; z-index:200; display:flex; flex-direction:column; gap:10px}
+.toast{
+  background:var(--surface); border:1px solid var(--border); border-radius:12px;
+  padding:14px 18px; box-shadow:var(--shadow-lg); display:flex; align-items:center; gap:12px;
+  min-width:280px; animation: slideInRight .3s ease;
+}
+.toast.success{border-left:4px solid var(--success)}
+.toast.error{border-left:4px solid var(--danger)}
+.toast.info{border-left:4px solid var(--primary)}
+.toast i{font-size:18px}
+.toast.success i{color:var(--success)}
+.toast.error i{color:var(--danger)}
+.toast.info i{color:var(--primary)}
+
+/* ============ Loader ============ */
+.loader{
+  width:38px; height:38px; border-radius:50%;
+  border:3px solid var(--surface-2); border-top-color:var(--primary);
+  animation: spin .8s linear infinite; margin:40px auto;
+}
+
+/* ============ Reading progress ============ */
+#readbar{
+  position:fixed; top:0; left:0; height:3px; width:0%;
+  background:var(--grad); z-index:60; transition:width .1s;
+}
+
+/* ============ Post view ============ */
+.post-hero{padding:50px 0 30px}
+.post-hero .cat{display:inline-block; padding:4px 12px; border-radius:999px; background:var(--grad-soft); color:var(--primary); font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.05em}
+.post-hero h1{font-size:clamp(36px,5vw,60px); margin:14px 0; line-height:1.1}
+.post-author{display:flex; align-items:center; gap:14px; margin:20px 0}
+.post-author .av{width:48px;height:48px;border-radius:50%;background:var(--grad);color:#fff;display:grid;place-items:center;font-weight:700}
+.post-author .meta{font-size:13px; color:var(--muted)}
+.post-author .meta strong{display:block; color:var(--text); font-size:15px; font-weight:600}
+.post-cover{aspect-ratio:16/8; border-radius:16px; overflow:hidden; margin:20px 0 30px; background:var(--surface-2)}
+.post-cover img{width:100%; height:100%; object-fit:cover}
+.post-body{max-width:760px; margin:0 auto; font-size:18px; line-height:1.8}
+.post-body h2{font-size:32px; margin:30px 0 12px}
+.post-body h3{font-size:24px; margin:24px 0 10px}
+.post-body p{margin:0 0 18px}
+.post-body img{border-radius:12px; margin:18px 0}
+.post-body blockquote{border-left:4px solid var(--primary); padding:6px 18px; color:var(--muted); margin:18px 0; font-style:italic}
+.post-actions{display:flex; gap:8px; padding:20px 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); margin:30px 0; flex-wrap:wrap}
+.act{padding:10px 16px; border-radius:10px; background:var(--surface-2); color:var(--text); font-size:14px; font-weight:500; display:inline-flex; align-items:center; gap:8px; transition:.2s}
+.act:hover{background:var(--border)}
+.act.active{background:var(--grad); color:#fff}
+.tags{display:flex; gap:8px; flex-wrap:wrap; margin:20px 0}
+.tag{padding:6px 12px; border-radius:999px; background:var(--surface-2); font-size:12px; color:var(--muted)}
+
+/* Comments */
+.comments{max-width:760px; margin:30px auto}
+.comments h3{font-size:26px; margin-bottom:18px}
+.comment{padding:16px; border:1px solid var(--border); border-radius:12px; margin-bottom:12px; background:var(--surface)}
+.comment-head{display:flex; align-items:center; gap:10px; margin-bottom:10px}
+.comment-head .av{width:32px;height:32px;border-radius:50%;background:var(--grad);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700}
+.comment-head .name{font-weight:600; font-size:14px}
+.comment-head .when{color:var(--muted); font-size:12px; margin-left:auto}
+.comment-text{font-size:14px; line-height:1.6; color:var(--text)}
+.comment-actions{display:flex; gap:14px; margin-top:8px; font-size:12px; color:var(--muted)}
+.comment-actions button{color:var(--muted); font-weight:500}
+.comment-actions button:hover{color:var(--primary)}
+.replies{margin-left:30px; margin-top:10px; padding-left:14px; border-left:2px solid var(--border)}
+
+/* Dashboard */
+.stats{display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:30px}
+@media(max-width:800px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{padding:20px; border-radius:14px; background:var(--surface); border:1px solid var(--border); position:relative; overflow:hidden}
+.stat .icon{width:42px;height:42px;border-radius:10px;background:var(--grad-soft); color:var(--primary); display:grid; place-items:center; font-size:18px; margin-bottom:10px}
+.stat .num{font-size:32px; font-family:'Instrument Serif',serif}
+.stat .lbl{color:var(--muted); font-size:13px}
+.dash-row{display:flex; align-items:center; gap:14px; padding:14px; border-bottom:1px solid var(--border)}
+.dash-row:last-child{border-bottom:none}
+.dash-row .ttl{flex:1; font-weight:500}
+.dash-row .badge{padding:3px 10px; border-radius:999px; font-size:11px; font-weight:600; text-transform:uppercase}
+.badge.published{background:color-mix(in oklab,var(--success) 15%, transparent); color:var(--success)}
+.badge.draft{background:color-mix(in oklab,var(--warn) 15%, transparent); color:var(--warn)}
+
+/* Sidebar mobile */
+.mobile-menu{
+  position:fixed; top:0; right:0; bottom:0; width:280px; background:var(--surface);
+  border-left:1px solid var(--border); transform:translateX(100%); transition:transform .3s; z-index:80;
+  padding:24px; display:flex; flex-direction:column; gap:6px;
+}
+.mobile-menu.open{transform:translateX(0)}
+.mobile-menu .nav-link{padding:14px; font-size:16px}
+.scrim{position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:70; display:none}
+.scrim.open{display:block}
+
+@media(max-width:850px){
+  .nav-links, .search-wrap{display:none}
+  .menu-toggle{display:grid}
+}
+
+/* Animations */
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{opacity:0; transform:translateY(20px)}to{opacity:1; transform:translateY(0)}}
+@keyframes slideInRight{from{opacity:0; transform:translateX(40px)}to{opacity:1; transform:translateX(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.fade-in{animation: slideUp .4s ease both}
+</style>
+</head>
+<body>
+
+<div id="readbar"></div>
+<div id="toast-wrap"></div>
+
+<!-- ===================== NAVBAR ===================== -->
+<header class="navbar">
+  <div class="container nav-inner">
+    <a class="brand" data-route="/" onclick="navigate('/')">
+      <span class="brand-mark"><i class="fa-solid fa-feather"></i></span>
+      <span class="brand-name">Inkwell</span>
+    </a>
+    <nav class="nav-links">
+      <a class="nav-link" onclick="navigate('/')">Home</a>
+      <a class="nav-link" onclick="navigate('/explore')">Explore</a>
+      <a class="nav-link" onclick="navigate('/dashboard')">Dashboard</a>
+    </nav>
+    <div class="search-wrap">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input id="globalSearch" placeholder="Search articles, tags, authors..." oninput="onGlobalSearch(event)"/>
+    </div>
+    <div class="nav-actions">
+      <button class="icon-btn" onclick="toggleTheme()" title="Toggle theme"><i id="themeIcon" class="fa-solid fa-moon"></i></button>
+      <button class="btn btn-primary" onclick="onWriteClick()"><i class="fa-solid fa-pen-nib"></i> Write</button>
+      <div id="authSlot"></div>
+      <button class="icon-btn menu-toggle" onclick="toggleMenu(true)"><i class="fa-solid fa-bars"></i></button>
+    </div>
+  </div>
+</header>
+
+<aside id="mobileMenu" class="mobile-menu">
+  <button class="icon-btn" style="align-self:flex-end" onclick="toggleMenu(false)"><i class="fa-solid fa-xmark"></i></button>
+  <a class="nav-link" onclick="navigate('/'); toggleMenu(false)">Home</a>
+  <a class="nav-link" onclick="navigate('/explore'); toggleMenu(false)">Explore</a>
+  <a class="nav-link" onclick="navigate('/dashboard'); toggleMenu(false)">Dashboard</a>
+  <div class="search-wrap" style="display:block; max-width:none; margin-top:12px">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <input placeholder="Search..." oninput="onGlobalSearch(event)"/>
+  </div>
+</aside>
+<div id="scrim" class="scrim" onclick="toggleMenu(false)"></div>
+
+<!-- ===================== APP ROOT ===================== -->
+<main id="app"></main>
+
+<footer>
+  <div class="container footer-inner">
+    <div>© <span id="yr"></span> Inkwell — Crafted with <i class="fa-solid fa-heart" style="color:var(--danger)"></i> for storytellers.</div>
+    <div class="footer-links">
+      <a>About</a><a>Privacy</a><a>Terms</a><a>Contact</a>
+    </div>
+  </div>
+</footer>
+
+<!-- ===================== MODALS ===================== -->
+<div id="authModal" class="modal-overlay" onclick="if(event.target===this)closeModal('authModal')">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="authTitle">Welcome back</h3>
+      <button class="icon-btn" onclick="closeModal('authModal')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <form id="authForm" onsubmit="submitAuth(event)">
+        <div id="nameField" class="field" style="display:none">
+          <label>Full Name</label><input name="name" type="text" placeholder="Jane Doe"/>
+          <div class="err">Name is required</div>
+        </div>
+        <div class="field">
+          <label>Email</label><input name="email" type="email" placeholder="you@example.com"/>
+          <div class="err">Enter a valid email</div>
+        </div>
+        <div class="field">
+          <label>Password</label><input name="password" type="password" placeholder="••••••••"/>
+          <div class="err">Min 6 characters</div>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center" id="authBtn">Sign in</button>
+        <div class="form-foot">
+          <span class="switch-link" id="authSwitch"></span>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div id="editorModal" class="modal-overlay" onclick="if(event.target===this)closeModal('editorModal')">
+  <div class="modal lg">
+    <div class="modal-head">
+      <h3 id="editorTitle">Write a new story</h3>
+      <button class="icon-btn" onclick="closeModal('editorModal')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <form id="postForm" onsubmit="event.preventDefault(); savePost(true)">
+        <div class="field"><label>Title</label><input name="title" placeholder="An unforgettable title..."/></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px">
+          <div class="field"><label>Cover Image URL</label><input name="image" placeholder="https://..."/></div>
+          <div class="field"><label>Category</label>
+            <select name="category">
+              <option>Technology</option><option>Design</option><option>Business</option>
+              <option>Lifestyle</option><option>Travel</option><option>Health</option><option>Productivity</option>
+            </select>
+          </div>
+        </div>
+        <div class="field"><label>Tags (comma separated)</label><input name="tags" placeholder="react, ai, design"/></div>
+        <div class="field">
+          <label>Content</label>
+          <div class="editor-toolbar">
+            <button type="button" onclick="exec('bold')" title="Bold"><i class="fa-solid fa-bold"></i></button>
+            <button type="button" onclick="exec('italic')" title="Italic"><i class="fa-solid fa-italic"></i></button>
+            <button type="button" onclick="exec('underline')" title="Underline"><i class="fa-solid fa-underline"></i></button>
+            <span class="sep"></span>
+            <button type="button" onclick="exec('formatBlock','H2')" title="Heading"><i class="fa-solid fa-heading"></i></button>
+            <button type="button" onclick="exec('formatBlock','H3')" title="Subheading">H3</button>
+            <button type="button" onclick="exec('formatBlock','BLOCKQUOTE')" title="Quote"><i class="fa-solid fa-quote-right"></i></button>
+            <span class="sep"></span>
+            <button type="button" onclick="exec('insertUnorderedList')" title="Bulleted list"><i class="fa-solid fa-list-ul"></i></button>
+            <button type="button" onclick="exec('insertOrderedList')" title="Numbered list"><i class="fa-solid fa-list-ol"></i></button>
+            <span class="sep"></span>
+            <button type="button" onclick="addLink()" title="Link"><i class="fa-solid fa-link"></i></button>
+            <button type="button" onclick="addImage()" title="Image"><i class="fa-solid fa-image"></i></button>
+            <button type="button" onclick="exec('removeFormat')" title="Clear"><i class="fa-solid fa-eraser"></i></button>
+          </div>
+          <div id="editor" class="editor-area" contenteditable="true" data-placeholder="Tell your story..."></div>
+        </div>
+        <div class="form-foot">
+          <button type="button" class="btn btn-ghost" onclick="savePost(false)"><i class="fa-regular fa-floppy-disk"></i> Save Draft</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i> Publish</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ====================================================================
+   INKWELL — Single-file blogging platform
+   Storage keys: ink.users, ink.session, ink.posts, ink.comments,
+                 ink.likes, ink.bookmarks, ink.theme
+   ==================================================================== */
+
+// ---------- Storage helpers ----------
+const DB = {
+  get(k, d){ try{ return JSON.parse(localStorage.getItem(k)) ?? d } catch{ return d } },
+  set(k, v){ localStorage.setItem(k, JSON.stringify(v)) },
+};
+const uid = () => Math.random().toString(36).slice(2,10) + Date.now().toString(36);
+const initials = n => (n||'?').split(' ').map(s=>s[0]).join('').slice(0,2).toUpperCase();
+const fmt = ts => new Date(ts).toLocaleDateString('en', {month:'short', day:'numeric', year:'numeric'});
+const readingTime = html => Math.max(1, Math.round((html.replace(/<[^>]+>/g,'').split(/\s+/).length)/200)) + ' min read';
+const escapeHtml = s => (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+// ---------- Toast ----------
+function toast(msg, type='info'){
+  const wrap = document.getElementById('toast-wrap');
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  const ico = {success:'circle-check', error:'circle-xmark', info:'circle-info'}[type];
+  el.innerHTML = `<i class="fa-solid fa-${ico}"></i><span>${escapeHtml(msg)}</span>`;
+  wrap.appendChild(el);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transform='translateX(40px)'; el.style.transition='.3s'; setTimeout(()=>el.remove(), 300) }, 2800);
+}
+
+// ---------- Theme ----------
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme', t);
+  document.getElementById('themeIcon').className = 'fa-solid ' + (t==='dark'?'fa-sun':'fa-moon');
+  DB.set('ink.theme', t);
+}
+function toggleTheme(){
+  const next = document.documentElement.getAttribute('data-theme')==='dark' ? 'light' : 'dark';
+  applyTheme(next);
+}
+applyTheme(DB.get('ink.theme','light'));
+
+// ---------- Seeding ----------
+function seed(){
+  if(!DB.get('ink.users')){
+    DB.set('ink.users', [
+      {id:'u1', name:'Ava Mitchell', email:'ava@inkwell.io', password:'demo1234', bio:'Design lead writing about craft and process.'},
+      {id:'u2', name:'Leo Carter', email:'leo@inkwell.io', password:'demo1234', bio:'Software engineer. Building things that matter.'},
+      {id:'u3', name:'Sara Lin', email:'sara@inkwell.io', password:'demo1234', bio:'Productivity & wellbeing writer.'},
+    ]);
+  }
+  if(!DB.get('ink.posts')){
+    const now = Date.now();
+    DB.set('ink.posts', [
+      {
+        id:'p1', authorId:'u1', title:'The Quiet Power of Restraint in Modern Design',
+        category:'Design', tags:['design','ux','minimalism'],
+        image:'https://images.unsplash.com/photo-1558655146-d09347e92766?w=1200',
+        content:`<p>Great design rarely shouts. It whispers, guides, and gets out of the way. In a world saturated with motion, color and noise, restraint is the new luxury.</p><h2>Why minimal isn't empty</h2><p>Restraint is not absence — it is intention. Every removed element makes the remaining ones matter more. The cursor blinks louder when the page is calm.</p><blockquote>The best interface is the one you forget you're using.</blockquote><p>When we strip away ornamentation, we're left with hierarchy, rhythm and meaning. That's where the soul of a product lives.</p><h3>Three principles to practice</h3><ul><li>Use one accent color, deliberately.</li><li>Let typography do the heavy lifting.</li><li>Give every element room to breathe.</li></ul>`,
+        status:'published', createdAt: now - 86400000*2, views: 1240, featured:true,
+      },
+      {
+        id:'p2', authorId:'u2', title:'Why I Stopped Chasing Frameworks',
+        category:'Technology', tags:['react','javascript','engineering'],
+        image:'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=1200',
+        content:`<p>Every six months a new framework promises to change everything. After ten years of riding the carousel, I finally got off — and my code got better.</p><h2>The fundamentals never expire</h2><p>HTTP, data modeling, caching, observability. These outlast every JavaScript flavor of the month.</p><p>Choose tools that compose, not tools that captivate.</p>`,
+        status:'published', createdAt: now - 86400000*4, views: 980,
+      },
+      {
+        id:'p3', authorId:'u3', title:'A Slow Morning Routine That Actually Works',
+        category:'Productivity', tags:['habits','mornings','focus'],
+        image:'https://images.unsplash.com/photo-1495197359483-d092478c170a?w=1200',
+        content:`<p>Forget the 5am club. The best mornings start with attention, not adrenaline.</p><h3>What I do</h3><ul><li>Phone stays in another room until 9am.</li><li>Two pages of journaling, hand-written.</li><li>A walk before opening any screen.</li></ul><p>Small rituals create big leverage. Protect the first hour and the rest of the day defends itself.</p>`,
+        status:'published', createdAt: now - 86400000*1, views: 2310, trending:true,
+      },
+      {
+        id:'p4', authorId:'u1', title:'Color Systems for Calm Interfaces',
+        category:'Design', tags:['color','tokens','systems'],
+        image:'https://images.unsplash.com/photo-1503694978374-8a2fa686963a?w=1200',
+        content:`<p>A good color system is less about taste and more about <em>contrast, hierarchy and intent</em>.</p><h2>Tokens, not values</h2><p>Name your colors after meaning, not hex. <code>surface.muted</code> survives a redesign. <code>#f1f5fb</code> does not.</p>`,
+        status:'published', createdAt: now - 86400000*6, views: 540,
+      },
+      {
+        id:'p5', authorId:'u2', title:'Shipping Software in Public',
+        category:'Business', tags:['startups','indie','marketing'],
+        image:'https://images.unsplash.com/photo-1531973576160-7125cd663d86?w=1200',
+        content:`<p>Building in public is uncomfortable, slow, and the single best growth channel I've ever used. Here's the playbook.</p><h3>Pick a cadence</h3><p>Weekly. Always. Show what you built, what broke, and what you learned.</p>`,
+        status:'published', createdAt: now - 86400000*3, views: 1730, trending:true,
+      },
+      {
+        id:'p6', authorId:'u3', title:'Notes from a Month of Walking',
+        category:'Lifestyle', tags:['walking','mindfulness'],
+        image:'https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=1200',
+        content:`<p>I walked an hour every day for thirty days. My body felt fine. My mind felt rearranged.</p><p>Walking is the original creative tool. It is also free.</p>`,
+        status:'published', createdAt: now - 86400000*8, views: 410,
+      },
+    ]);
+  }
+  if(!DB.get('ink.comments')) DB.set('ink.comments', {});
+  if(!DB.get('ink.likes')) DB.set('ink.likes', {});
+  if(!DB.get('ink.bookmarks')) DB.set('ink.bookmarks', {});
+}
+seed();
+
+// ---------- Session ----------
+const Session = {
+  get(){ return DB.get('ink.session', null) },
+  set(u){ DB.set('ink.session', u); renderAuthSlot() },
+  clear(){ localStorage.removeItem('ink.session'); renderAuthSlot() },
+};
+function user(){ return Session.get() }
+
+function renderAuthSlot(){
+  const slot = document.getElementById('authSlot');
+  const u = user();
+  if(!u){
+    slot.innerHTML = `<button class="btn btn-ghost" onclick="openAuth('login')">Sign in</button>`;
+  } else {
+    slot.innerHTML = `
+      <div style="position:relative">
+        <div class="avatar" onclick="document.getElementById('userMenu').classList.toggle('open')" title="${escapeHtml(u.name)}">${initials(u.name)}</div>
+        <div id="userMenu" class="modal" style="position:absolute; right:0; top:46px; width:200px; display:none; padding:8px">
+          <a class="nav-link" style="display:block" onclick="navigate('/dashboard'); document.getElementById('userMenu').classList.remove('open')"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+          <a class="nav-link" style="display:block" onclick="onWriteClick(); document.getElementById('userMenu').classList.remove('open')"><i class="fa-solid fa-pen"></i> New post</a>
+          <a class="nav-link" style="display:block; color:var(--danger)" onclick="logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i> Sign out</a>
+        </div>
+      </div>`;
+    // toggle visibility via class
+    const m = document.getElementById('userMenu');
+    const obs = new MutationObserver(()=>{ m.style.display = m.classList.contains('open') ? 'block' : 'none' });
+    obs.observe(m,{attributes:true});
+    document.addEventListener('click',(e)=>{ if(!slot.contains(e.target)) m.classList.remove('open') });
+  }
+}
+
+// ---------- Auth modal ----------
+let authMode = 'login';
+function openAuth(mode){
+  authMode = mode;
+  document.getElementById('authTitle').textContent = mode==='login' ? 'Welcome back' : 'Create your account';
+  document.getElementById('authBtn').textContent = mode==='login' ? 'Sign in' : 'Create account';
+  document.getElementById('nameField').style.display = mode==='login' ? 'none' : 'block';
+  document.getElementById('authSwitch').innerHTML = mode==='login'
+    ? `New here? <a onclick="openAuth('signup')">Create an account</a>`
+    : `Already a member? <a onclick="openAuth('login')">Sign in</a>`;
+  document.querySelectorAll('#authForm .field').forEach(f=>f.classList.remove('error'));
+  document.getElementById('authForm').reset();
+  openModal('authModal');
+  if(mode==='login'){
+    // hint demo
+    const f = document.getElementById('authForm');
+    f.email.value = 'ava@inkwell.io'; f.password.value = 'demo1234';
+  }
+}
+function submitAuth(e){
+  e.preventDefault();
+  const f = e.target;
+  const data = { name:f.name?.value?.trim(), email:f.email.value.trim(), password:f.password.value };
+  let ok = true;
+  const setErr = (n,bad) => { const fld = f[n].closest('.field'); fld.classList.toggle('error', bad); if(bad) ok=false; };
+  if(authMode==='signup') setErr('name', !data.name);
+  setErr('email', !/^\S+@\S+\.\S+$/.test(data.email));
+  setErr('password', !data.password || data.password.length<6);
+  if(!ok) return;
+
+  const users = DB.get('ink.users', []);
+  if(authMode==='signup'){
+    if(users.some(u=>u.email===data.email)){ toast('Email already registered','error'); return }
+    const nu = {id:uid(), ...data, bio:''};
+    users.push(nu); DB.set('ink.users', users);
+    Session.set({id:nu.id, name:nu.name, email:nu.email});
+    toast('Welcome to Inkwell, '+nu.name+'!','success');
+  } else {
+    const u = users.find(u=>u.email===data.email && u.password===data.password);
+    if(!u){ toast('Invalid credentials','error'); return }
+    Session.set({id:u.id, name:u.name, email:u.email});
+    toast('Signed in as '+u.name,'success');
+  }
+  closeModal('authModal');
+  render();
+}
+function logout(){ Session.clear(); toast('Signed out','info'); navigate('/') }
+
+// ---------- Modals ----------
+function openModal(id){ document.getElementById(id).classList.add('open') }
+function closeModal(id){ document.getElementById(id).classList.remove('open') }
+
+// ---------- Editor (contenteditable) ----------
+let editingId = null;
+function exec(cmd, val=null){ document.execCommand(cmd, false, val); document.getElementById('editor').focus() }
+function addLink(){ const url = prompt('Link URL'); if(url) exec('createLink', url) }
+function addImage(){ const url = prompt('Image URL'); if(url) exec('insertImage', url) }
+
+function onWriteClick(){
+  if(!user()){ openAuth('login'); toast('Please sign in to write','info'); return }
+  openEditor(null);
+}
+function openEditor(id){
+  editingId = id;
+  const f = document.getElementById('postForm');
+  f.reset();
+  document.getElementById('editor').innerHTML = '';
+  document.getElementById('editorTitle').textContent = id ? 'Edit story' : 'Write a new story';
+  if(id){
+    const p = DB.get('ink.posts',[]).find(p=>p.id===id);
+    if(p){
+      f.title.value = p.title; f.image.value = p.image||''; f.category.value = p.category;
+      f.tags.value = (p.tags||[]).join(', ');
+      document.getElementById('editor').innerHTML = p.content || '';
+    }
+  }
+  openModal('editorModal');
+}
+function savePost(publish){
+  if(!user()){ openAuth('login'); return }
+  const f = document.getElementById('postForm');
+  const title = f.title.value.trim();
+  const content = document.getElementById('editor').innerHTML.trim();
+  if(!title){ toast('Title is required','error'); return }
+  if(!content || content==='<br>'){ toast('Content is required','error'); return }
+  const posts = DB.get('ink.posts', []);
+  const tags = f.tags.value.split(',').map(t=>t.trim()).filter(Boolean);
+  if(editingId){
+    const i = posts.findIndex(p=>p.id===editingId);
+    if(i>-1){
+      posts[i] = {...posts[i], title, image:f.image.value.trim(), category:f.category.value, tags, content, status: publish?'published':posts[i].status, updatedAt:Date.now()};
+    }
+  } else {
+    posts.unshift({
+      id:uid(), authorId:user().id, title, image:f.image.value.trim(),
+      category:f.category.value, tags, content,
+      status: publish?'published':'draft', createdAt:Date.now(), views:0,
+    });
+  }
+  DB.set('ink.posts', posts);
+  closeModal('editorModal');
+  toast(publish?'Post published':'Draft saved','success');
+  navigate('/dashboard');
+}
+function deletePost(id){
+  if(!confirm('Delete this post?')) return;
+  DB.set('ink.posts', DB.get('ink.posts',[]).filter(p=>p.id!==id));
+  toast('Post deleted','info'); render();
+}
+
+// ---------- Likes / Bookmarks ----------
+function toggleLike(postId){
+  if(!user()){ openAuth('login'); return }
+  const all = DB.get('ink.likes', {});
+  const set = new Set(all[postId]||[]);
+  set.has(user().id) ? set.delete(user().id) : set.add(user().id);
+  all[postId] = [...set]; DB.set('ink.likes', all);
+  render();
+}
+function toggleBookmark(postId){
+  if(!user()){ openAuth('login'); return }
+  const all = DB.get('ink.bookmarks', {});
+  const set = new Set(all[user().id]||[]);
+  set.has(postId) ? set.delete(postId) : set.add(postId);
+  all[user().id] = [...set]; DB.set('ink.bookmarks', all);
+  toast(set.has(postId)?'Bookmarked':'Removed bookmark','info');
+  render();
+}
+function likeCount(p){ return (DB.get('ink.likes',{})[p.id]||[]).length }
+function isLiked(p){ const u=user(); if(!u) return false; return (DB.get('ink.likes',{})[p.id]||[]).includes(u.id) }
+function isBookmarked(p){ const u=user(); if(!u) return false; return (DB.get('ink.bookmarks',{})[u.id]||[]).includes(p.id) }
+
+// ---------- Sharing ----------
+function sharePost(slug){
+  const url = location.origin + location.pathname + '#/post/' + slug;
+  navigator.clipboard?.writeText(url);
+  toast('Link copied to clipboard','success');
+}
+
+// ---------- Comments ----------
+function addComment(postId, parentId=null, inputEl){
+  if(!user()){ openAuth('login'); return }
+  const text = inputEl.value.trim(); if(!text) return;
+  const all = DB.get('ink.comments', {});
+  const list = all[postId] || [];
+  list.push({id:uid(), authorId:user().id, text, parentId, createdAt:Date.now()});
+  all[postId] = list; DB.set('ink.comments', all);
+  inputEl.value = ''; render();
+}
+function deleteComment(postId, cid){
+  const all = DB.get('ink.comments', {});
+  all[postId] = (all[postId]||[]).filter(c=>c.id!==cid && c.parentId!==cid);
+  DB.set('ink.comments', all);
+  render();
+}
+
+// ---------- Routing ----------
+const Router = { route:'/', params:{} };
+function navigate(path){
+  location.hash = '#' + path;
+}
+window.addEventListener('hashchange', parseHash);
+function parseHash(){
+  const h = location.hash.replace(/^#/,'') || '/';
+  Router.route = h; render();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+// ---------- Helpers ----------
+function getAuthor(id){ return DB.get('ink.users',[]).find(u=>u.id===id) || {name:'Unknown', id} }
+function slugify(p){ return p.id }
+function published(){ return DB.get('ink.posts',[]).filter(p=>p.status==='published') }
+
+// ---------- Renderers ----------
+let activeCat = 'All';
+let searchQ = '';
+function onGlobalSearch(e){ searchQ = e.target.value.toLowerCase(); if(Router.route==='/' || Router.route==='/explore') render() }
+
+function postCard(p){
+  const a = getAuthor(p.authorId);
+  const excerpt = p.content.replace(/<[^>]+>/g,'').slice(0,140);
+  return `
+    <article class="card fade-in" onclick="navigate('/post/${p.id}')" style="cursor:pointer">
+      <div class="thumb">
+        ${p.image ? `<img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.title)}" loading="lazy"/>` : `<div style="height:100%;background:var(--grad-soft)"></div>`}
+        <span class="cat">${escapeHtml(p.category)}</span>
+      </div>
+      <div class="card-body">
+        <h3 class="card-title">${escapeHtml(p.title)}</h3>
+        <p class="card-excerpt">${escapeHtml(excerpt)}${excerpt.length>=140?'…':''}</p>
+        <div class="card-meta">
+          <div class="av">${initials(a.name)}</div>
+          <strong style="color:var(--text); font-weight:600">${escapeHtml(a.name)}</strong>
+          <span>·</span><span>${fmt(p.createdAt)}</span>
+          <span>·</span><span><i class="fa-regular fa-clock"></i> ${readingTime(p.content)}</span>
+          <span style="margin-left:auto"><i class="fa-regular fa-heart"></i> ${likeCount(p)}</span>
+        </div>
+      </div>
+    </article>`;
+}
+
+function filteredPosts(){
+  let list = published();
+  if(activeCat!=='All') list = list.filter(p=>p.category===activeCat);
+  if(searchQ) list = list.filter(p =>
+    p.title.toLowerCase().includes(searchQ) ||
+    p.content.toLowerCase().includes(searchQ) ||
+    (p.tags||[]).some(t=>t.toLowerCase().includes(searchQ)) ||
+    getAuthor(p.authorId).name.toLowerCase().includes(searchQ)
+  );
+  return list;
+}
+
+function viewHome(){
+  const cats = ['All','Technology','Design','Business','Lifestyle','Productivity','Travel','Health'];
+  const all = filteredPosts();
+  const featured = published().find(p=>p.featured) || published()[0];
+  const trending = published().filter(p=>p.trending).slice(0,3);
+  const a = featured ? getAuthor(featured.authorId) : null;
+
+  return `
+    <section class="hero">
+      <div class="container hero-inner fade-in">
+        <span class="kicker"><i class="fa-solid fa-sparkles"></i> A home for thoughtful writing</span>
+        <h1>Stories worth your <span class="em">undivided</span> attention.</h1>
+        <p>Inkwell is a calm, beautiful place to read and write — from deep tech essays to lifestyle notes. Crafted for readers.</p>
+        <div class="hero-cta">
+          <button class="btn btn-primary" onclick="onWriteClick()"><i class="fa-solid fa-pen-nib"></i> Start writing</button>
+          <button class="btn btn-ghost" onclick="navigate('/explore')"><i class="fa-solid fa-compass"></i> Explore stories</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="block container">
+      <div class="section-head">
+        <div><h2>Featured story</h2><p>Hand-picked by the editors</p></div>
+      </div>
+      ${featured ? `
+      <article class="featured fade-in" onclick="navigate('/post/${featured.id}')" style="cursor:pointer">
+        <div class="thumb">${featured.image?`<img src="${escapeHtml(featured.image)}"/>`:''}<span class="cat">${escapeHtml(featured.category)}</span></div>
+        <div class="card-body">
+          <h3 class="card-title">${escapeHtml(featured.title)}</h3>
+          <p class="card-excerpt">${escapeHtml(featured.content.replace(/<[^>]+>/g,'').slice(0,200))}…</p>
+          <div class="card-meta">
+            <div class="av">${initials(a.name)}</div>
+            <strong style="color:var(--text); font-weight:600">${escapeHtml(a.name)}</strong>
+            <span>·</span><span>${fmt(featured.createdAt)}</span>
+            <span>·</span><span>${readingTime(featured.content)}</span>
+          </div>
+        </div>
+      </article>` : ''}
+
+      <div class="section-head"><div><h2>Trending now</h2><p>What readers are loving this week</p></div></div>
+      <div class="grid">${trending.map(postCard).join('') || emptyState('No trending posts yet')}</div>
+    </section>
+
+    <section class="block container">
+      <div class="section-head"><div><h2>Latest stories</h2><p>Fresh from the community</p></div></div>
+      <div class="chips">
+        ${cats.map(c=>`<button class="chip ${c===activeCat?'active':''}" onclick="activeCat='${c}'; render()">${c}</button>`).join('')}
+      </div>
+      <div class="grid">${all.map(postCard).join('') || emptyState('No posts match your filters')}</div>
+    </section>
+  `;
+}
+
+function emptyState(msg){
+  return `<div class="empty" style="grid-column:1/-1"><i class="fa-regular fa-folder-open"></i><div>${escapeHtml(msg)}</div></div>`;
+}
+
+function viewExplore(){
+  const cats = ['All','Technology','Design','Business','Lifestyle','Productivity','Travel','Health'];
+  const list = filteredPosts();
+  return `
+    <section class="block container">
+      <div class="section-head">
+        <div><h2>Explore</h2><p>Search across every story on Inkwell</p></div>
+      </div>
+      <div class="field" style="max-width:520px">
+        <input placeholder="Search by title, tag, or author..." value="${escapeHtml(searchQ)}" oninput="searchQ=this.value.toLowerCase(); render()"/>
+      </div>
+      <div class="chips">
+        ${cats.map(c=>`<button class="chip ${c===activeCat?'active':''}" onclick="activeCat='${c}'; render()">${c}</button>`).join('')}
+      </div>
+      <div class="grid">${list.map(postCard).join('') || emptyState('No results found')}</div>
+    </section>
+  `;
+}
+
+function viewPost(id){
+  const p = DB.get('ink.posts',[]).find(p=>p.id===id);
+  if(!p) return `<section class="block container">${emptyState('Post not found')}</section>`;
+  // bump views once per session per post
+  const seenKey = 'ink.seen.'+id;
+  if(!sessionStorage.getItem(seenKey)){
+    sessionStorage.setItem(seenKey,'1');
+    const posts = DB.get('ink.posts',[]);
+    const i = posts.findIndex(x=>x.id===id); if(i>-1){ posts[i].views=(posts[i].views||0)+1; DB.set('ink.posts', posts) }
+  }
+  const a = getAuthor(p.authorId);
+  const comments = DB.get('ink.comments',{})[id] || [];
+  const top = comments.filter(c=>!c.parentId);
+  const renderC = c => {
+    const ca = getAuthor(c.authorId);
+    const replies = comments.filter(r=>r.parentId===c.id);
+    const u = user();
+    return `
+      <div class="comment">
+        <div class="comment-head">
+          <div class="av">${initials(ca.name)}</div>
+          <span class="name">${escapeHtml(ca.name)}</span>
+          <span class="when">${fmt(c.createdAt)}</span>
+        </div>
+        <div class="comment-text">${escapeHtml(c.text)}</div>
+        <div class="comment-actions">
+          <button onclick="document.getElementById('reply-${c.id}').classList.toggle('open')"><i class="fa-solid fa-reply"></i> Reply</button>
+          ${u && u.id===c.authorId ? `<button onclick="deleteComment('${id}','${c.id}')"><i class="fa-regular fa-trash-can"></i> Delete</button>`:''}
+        </div>
+        <div id="reply-${c.id}" style="display:none; margin-top:10px" class="reply-box">
+          <div style="display:flex; gap:8px">
+            <input class="field" style="flex:1" placeholder="Write a reply..." onkeydown="if(event.key==='Enter'){addComment('${id}','${c.id}',this)}"/>
+          </div>
+        </div>
+        ${replies.length ? `<div class="replies">${replies.map(renderC).join('')}</div>`:''}
+      </div>`;
+  };
+  // hack: show reply box when open class set
+  setTimeout(()=>{ document.querySelectorAll('[id^="reply-"]').forEach(el=>{ el.style.display = el.classList.contains('open')?'block':'none' }) },0);
+
+  return `
+    <section class="post-hero container">
+      <span class="cat">${escapeHtml(p.category)}</span>
+      <h1>${escapeHtml(p.title)}</h1>
+      <div class="post-author">
+        <div class="av">${initials(a.name)}</div>
+        <div class="meta"><strong>${escapeHtml(a.name)}</strong>${fmt(p.createdAt)} · ${readingTime(p.content)} · ${p.views||0} views</div>
+      </div>
+      ${p.image ? `<div class="post-cover"><img src="${escapeHtml(p.image)}"/></div>`:''}
+      <div class="post-body">${p.content}</div>
+      <div class="tags">${(p.tags||[]).map(t=>`<span class="tag">#${escapeHtml(t)}</span>`).join('')}</div>
+      <div class="post-actions">
+        <button class="act ${isLiked(p)?'active':''}" onclick="toggleLike('${p.id}')"><i class="fa-${isLiked(p)?'solid':'regular'} fa-heart"></i> ${likeCount(p)}</button>
+        <button class="act ${isBookmarked(p)?'active':''}" onclick="toggleBookmark('${p.id}')"><i class="fa-${isBookmarked(p)?'solid':'regular'} fa-bookmark"></i> ${isBookmarked(p)?'Saved':'Save'}</button>
+        <button class="act" onclick="sharePost('${p.id}')"><i class="fa-solid fa-link"></i> Copy link</button>
+        <a class="act" target="_blank" href="https://twitter.com/intent/tweet?text=${encodeURIComponent(p.title)}"><i class="fa-brands fa-x-twitter"></i> Share</a>
+        <a class="act" target="_blank" href="https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(location.href)}"><i class="fa-brands fa-linkedin"></i></a>
+      </div>
+    </section>
+
+    <section class="comments container">
+      <h3>Comments (${comments.length})</h3>
+      <div class="field" style="display:flex; gap:8px">
+        <input placeholder="${user()?'Share your thoughts...':'Sign in to comment'}" ${user()?'':'disabled'} onkeydown="if(event.key==='Enter'){addComment('${p.id}',null,this)}"/>
+      </div>
+      ${top.length ? top.map(renderC).join('') : emptyState('Be the first to comment')}
+    </section>
+  `;
+}
+
+function viewDashboard(){
+  const u = user();
+  if(!u) return `<section class="block container">
+    <div class="empty"><i class="fa-solid fa-lock"></i><h3 class="serif" style="font-size:28px">Sign in to access your dashboard</h3>
+      <button class="btn btn-primary" style="margin-top:14px" onclick="openAuth('login')">Sign in</button></div></section>`;
+
+  const mine = DB.get('ink.posts',[]).filter(p=>p.authorId===u.id);
+  const totalViews = mine.reduce((a,b)=>a+(b.views||0),0);
+  const totalLikes = mine.reduce((a,b)=>a+likeCount(b),0);
+  const totalDrafts = mine.filter(p=>p.status==='draft').length;
+  const bookmarks = (DB.get('ink.bookmarks',{})[u.id]||[]).map(id=>DB.get('ink.posts',[]).find(p=>p.id===id)).filter(Boolean);
+
+  return `
+    <section class="block container fade-in">
+      <div class="section-head">
+        <div><h2>Welcome back, ${escapeHtml(u.name)}</h2><p>Here's a snapshot of your writing.</p></div>
+        <button class="btn btn-primary" onclick="onWriteClick()"><i class="fa-solid fa-pen-nib"></i> New post</button>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="icon"><i class="fa-solid fa-file-lines"></i></div><div class="num">${mine.length}</div><div class="lbl">Total posts</div></div>
+        <div class="stat"><div class="icon"><i class="fa-solid fa-eye"></i></div><div class="num">${totalViews}</div><div class="lbl">Total views</div></div>
+        <div class="stat"><div class="icon"><i class="fa-solid fa-heart"></i></div><div class="num">${totalLikes}</div><div class="lbl">Total likes</div></div>
+        <div class="stat"><div class="icon"><i class="fa-regular fa-clock"></i></div><div class="num">${totalDrafts}</div><div class="lbl">Drafts</div></div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card" style="padding:8px">
+          <div style="padding:14px 16px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center">
+            <strong>My posts</strong>
+            <span style="color:var(--muted); font-size:13px">${mine.length} total</span>
+          </div>
+          ${mine.length ? mine.map(p=>`
+            <div class="dash-row">
+              <div style="flex:1">
+                <div class="ttl" onclick="navigate('/post/${p.id}')" style="cursor:pointer">${escapeHtml(p.title)}</div>
+                <div style="color:var(--muted); font-size:12px; margin-top:3px">
+                  <span class="badge ${p.status}">${p.status}</span>
+                  · ${fmt(p.createdAt)} · ${p.views||0} views · ${likeCount(p)} likes
+                </div>
+              </div>
+              <button class="icon-btn" onclick="openEditor('${p.id}')" title="Edit"><i class="fa-solid fa-pen"></i></button>
+              <button class="icon-btn" onclick="deletePost('${p.id}')" title="Delete" style="color:var(--danger)"><i class="fa-regular fa-trash-can"></i></button>
+            </div>
+          `).join('') : `<div style="padding:30px; text-align:center; color:var(--muted)">No posts yet — <a style="color:var(--primary); cursor:pointer" onclick="onWriteClick()">write your first one</a>.</div>`}
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:16px">
+          <div class="card" style="padding:20px">
+            <strong>Profile</strong>
+            <div style="display:flex; gap:14px; align-items:center; margin-top:14px">
+              <div class="avatar" style="width:54px; height:54px; font-size:18px">${initials(u.name)}</div>
+              <div>
+                <div style="font-weight:600">${escapeHtml(u.name)}</div>
+                <div style="color:var(--muted); font-size:13px">${escapeHtml(u.email)}</div>
+              </div>
+            </div>
+          </div>
+          <div class="card" style="padding:20px">
+            <strong>Bookmarks</strong>
+            <div style="margin-top:10px; display:flex; flex-direction:column; gap:10px">
+              ${bookmarks.length ? bookmarks.map(p=>`<a onclick="navigate('/post/${p.id}')" style="cursor:pointer; color:var(--text); font-size:14px"><i class="fa-solid fa-bookmark" style="color:var(--primary); margin-right:6px"></i> ${escapeHtml(p.title)}</a>`).join('') : `<div style="color:var(--muted); font-size:13px">No bookmarks yet.</div>`}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+// ---------- Reading progress ----------
+function updateProgress(){
+  const max = document.documentElement.scrollHeight - window.innerHeight;
+  const p = max>0 ? (window.scrollY/max)*100 : 0;
+  document.getElementById('readbar').style.width = p+'%';
+}
+window.addEventListener('scroll', updateProgress);
+
+// ---------- Mobile menu ----------
+function toggleMenu(open){
+  document.getElementById('mobileMenu').classList.toggle('open', open);
+  document.getElementById('scrim').classList.toggle('open', open);
+}
+
+// ---------- Active nav link ----------
+function setActiveNav(){
+  document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
+  const r = Router.route;
+  const map = {'/':0,'/explore':1,'/dashboard':2};
+  const links = document.querySelectorAll('.nav-links .nav-link');
+  if(r in map && links[map[r]]) links[map[r]].classList.add('active');
+}
+
+// ---------- Render ----------
+function render(){
+  const app = document.getElementById('app');
+  app.innerHTML = `<div class="loader"></div>`;
+  // tiny delay for animation feel
+  requestAnimationFrame(()=>{
+    const r = Router.route;
+    if(r==='/' || r==='') app.innerHTML = viewHome();
+    else if(r==='/explore') app.innerHTML = viewExplore();
+    else if(r==='/dashboard') app.innerHTML = viewDashboard();
+    else if(r.startsWith('/post/')) app.innerHTML = viewPost(r.split('/post/')[1]);
+    else app.innerHTML = `<section class="block container">${emptyState('Page not found')}</section>`;
+    setActiveNav();
+    updateProgress();
+  });
+}
+
+// ---------- Boot ----------
+document.getElementById('yr').textContent = new Date().getFullYear();
+renderAuthSlot();
+parseHash();
+</script>
+</body>
+</html>
